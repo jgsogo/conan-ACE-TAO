@@ -64,7 +64,16 @@ class AcetaoConan(ConanFile):
         # Compile
         if self.settings.compiler == "Visual Studio":
             msbuild = MSBuild(self)
-            msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'))
+            try:
+                msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'))
+            except:
+                with open(os.path.join(working_dir, 'TAO', 'UpgradeLog.htm')) as f:
+                    self.output.info("*"*20)
+                    self.output.info("\n\n")
+                    self.output.info(f.read())
+                    self.output.info("\n\n")
+                    self.output.info("*"*20)
+                raise
 
     def build_linux(self, working_dir):
         assert self.settings.os == "Linux"
