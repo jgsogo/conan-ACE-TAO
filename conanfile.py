@@ -14,7 +14,9 @@ class AcetaoConan(ConanFile):
 
     generators = "visual_studio", "gcc"
 
-    requires = 'strawberryperl/5.26.0@conan/stable'
+    def build_requirements(self):
+        if self.settings.os == "Windows":
+            self.requires = 'strawberryperl/5.26.0@conan/stable'
 
     def configure(self):
         if self.settings.os not in ["Windows", "Linux", "Macos"]:
