@@ -1,6 +1,6 @@
 
 import os
-from conans import ConanFile, CMake, tools, MSBuild
+from conans import ConanFile, CMake, tools, MSBuild, AutoToolsBuildEnvironment
 from conans.errors import ConanException
 
 
@@ -16,20 +16,35 @@ class AcetaoConan(ConanFile):
 
     requires = 'strawberryperl/5.26.0@conan/stable'
 
+    def configure(self):
+        if self.settings.os not in ["Windows", "Linux", "Macos"]:
+            raise ConanException("Recipe for settings.os='{}' not implemented.".format(self.settings.os))
+
     def source(self):
         source_url = "http://download.dre.vanderbilt.edu/previous_versions"  # TODO: May I use https://github.com/DOCGroup/ACE_TAO/releases?
         tools.get("{0}/{1}-src-{2}.tar.gz".format(source_url, self.name, self.version))
-        source_subfolder = os.path.join(os.getcwd(), 'ACE_wrappers')
-        
+
+    def build(self):
+        working_dir = os.path.join(self.build_folder, 'ACE_wrappers')
+
         # Create config.h
-        with open(os.path.join(source_subfolder, 'ace', 'config.h'), 'w') as f:
+        with open(os.path.join(working_dir, 'ace', 'config.h'), 'w') as f:
             if self.settings.os == "Windows":
                 f.write('#include "ace/config-win32.h"\n')
             elif self.settings.os == "Linux":
                 f.write('#include "ace/config-linux.h"\n')
+            else:  # Macos
+                f.write('#include "ace/config-macosx.h"\n')
 
-    def build(self):
-        working_dir = os.path.join(os.getcwd(), 'ACE_wrappers')
+        if self.settings.os == "Windows":
+            self.build_windows(working_dir)
+        elif self.settings.os == "Linux":
+            self.build_linux(working_dir)
+        else:
+            self.build_macos(working_dir)
+
+    def build_windows(self, working_dir):
+        assert self.settings.os == "Windows"
 
         # Generate project using MPC
         command = ['perl', os.path.join(working_dir, 'bin', 'mwc.pl'), ]
@@ -48,6 +63,19 @@ class AcetaoConan(ConanFile):
         if self.settings.compiler == "Visual Studio":
             msbuild = MSBuild(self)
             msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'))
+
+    def build_linux(self, working_dir):
+        assert self.settings.os == "Linux"
+
+        with open(os.path.join(working_dir, 'include', 'makeinclude', 'platform_macros.GNU'), 'w') as f:
+            f.write("include $(ACE_ROOT)/include/makeinclude/platform_linux.GNU\n")
+
+        with tools.environment_append({'ACE_ROOT': working_dir,}):
+            env_build = AutoToolsBuildEnvironment(self)
+            env_build.make()
+
+    def build_macos(self, working_dir):
+        raise ConanException("AcetaoConan::build_macos not implemented")
 
     def package(self):
         self.copy("*.h", dst="include", src="hello")
