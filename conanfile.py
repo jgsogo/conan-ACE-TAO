@@ -16,7 +16,7 @@ class AcetaoConan(ConanFile):
 
     source_subfolder = 'source_subfolder'
 
-    def build_requirements(self):  # TODO: Check, if using build_requirements it does not add env variable to path
+    def build_requirements(self):
         if self.settings.os == "Windows":
             self.build_requires('strawberryperl/5.26.0@conan/stable')
 
@@ -83,7 +83,7 @@ class AcetaoConan(ConanFile):
 
         # Compile
         msbuild = MSBuild(self)
-        msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'))
+        msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'), upgrade_project=False)
 
     def build_linux(self, working_dir):
         assert self.settings.os == "Linux"
