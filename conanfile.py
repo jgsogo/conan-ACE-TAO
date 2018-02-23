@@ -84,7 +84,8 @@ class AcetaoConan(ConanFile):
 
         with tools.environment_append({'ACE_ROOT': working_dir, }):
             env_build = AutoToolsBuildEnvironment(self)
-            env_build.make()
+            with tools.chdir(os.path.join(working_dir, 'TAO')):
+                env_build.make()
 
     def build_macos(self, working_dir):
         raise ConanException("AcetaoConan::build_macos not implemented")
