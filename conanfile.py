@@ -1,6 +1,7 @@
 
 import os
-from conans import ConanFile, CMake, tools
+from conans import ConanFile, CMake, tools, MSBuild
+from conans.errors import ConanException
 
 
 class AcetaoConan(ConanFile):
@@ -10,50 +11,43 @@ class AcetaoConan(ConanFile):
     url = "http://www.dre.vanderbilt.edu/"
     description = "<Description of Acetao here>"
     settings = "os", "compiler", "build_type", "arch"
-    options = {"shared": [True, False]}
-    default_options = "shared=False"
 
-    generators = "cmake"
+    generators = "visual_studio", "gcc"
 
-    # Custom attributes for Bincrafters recipe conventions
-    source_subfolder = "source_subfolder"
-    build_subfolder = "build_subfolder"
+    requires = 'strawberryperl/5.26.0@conan/stable'
 
-    def requirements(self):
-        self.requires('strawberryperl/5.26.0@conan/stable')
-            
     def source(self):
-        source_url = "http://download.dre.vanderbilt.edu/previous_versions"
+        source_url = "http://download.dre.vanderbilt.edu/previous_versions"  # TODO: May I use https://github.com/DOCGroup/ACE_TAO/releases?
         tools.get("{0}/{1}-src-{2}.tar.gz".format(source_url, self.name, self.version))
-        extracted_dir = 'ACE_wrappers'
-        os.rename(extracted_dir, self.source_subfolder)
-
-        source_subfolder = os.path.join(os.getcwd(), self.source_subfolder)
+        source_subfolder = os.path.join(os.getcwd(), 'ACE_wrappers')
         
         # Create config.h
         with open(os.path.join(source_subfolder, 'ace', 'config.h'), 'w') as f:
-            if self.settings == "Windows":
+            if self.settings.os == "Windows":
                 f.write('#include "ace/config-win32.h"\n')
-            elif self.settings == "Linux":
+            elif self.settings.os == "Linux":
                 f.write('#include "ace/config-linux.h"\n')
-        
-        # Generate project
-        command = ['perl', os.path.join(source_subfolder, 'bin', 'mwc.pl'),]
-        command += ['--type', 'nmake']
-        command += [os.path.join(source_subfolder, 'TAO', 'TAO_ACE.mwc'),]
-        with tools.environment_append({'MPC_ROOT': os.path.join(source_subfolder, 'MPC'),
-                                       'ACE_ROOT': source_subfolder,
-                                       'TAO_ROOT': os.path.join(source_subfolder, 'TAO')}):
-            r = os.system(' '.join(command))
-            if r != 0:
-                raise RuntimeError("Error running: {}".format(command))
 
-        
     def build(self):
-        cmake = CMake(self, generator="NMake Makefiles")
-        cmake.configure()
-        cmake.build()
+        working_dir = os.path.join(os.getcwd(), 'ACE_wrappers')
 
+        # Generate project using MPC
+        command = ['perl', os.path.join(working_dir, 'bin', 'mwc.pl'), ]
+        if self.settings.compiler == "Visual Studio":
+            command += ['--type', 'vc{}'.format(self.settings.compiler.version)]
+        else:
+            raise ConanException("Compiler '{}' not implemented.".format(self.settings.compiler))
+        command += [os.path.join(working_dir, 'TAO', 'TAO_ACE.mwc'), ]
+        with tools.environment_append({'MPC_ROOT': os.path.join(working_dir, 'MPC'),
+                                       'ACE_ROOT': working_dir,
+                                       'TAO_ROOT': os.path.join(working_dir, 'TAO')}):
+            self.output("Generate project: {}".format(' '.join(command)))
+            self.run(' '.join(command))
+
+        # Compile
+        if self.settings.compiler == "Visual Studio":
+            msbuild = MSBuild(self)
+            msbuild.build(os.path.join(working_dir, 'TA0', 'TAO_ACE.sln'))
 
     def package(self):
         self.copy("*.h", dst="include", src="hello")
@@ -64,4 +58,4 @@ class AcetaoConan(ConanFile):
         self.copy("*.a", dst="lib", keep_path=False)
 
     def package_info(self):
-        self.cpp_info.libs = ["hello"]
+        self.cpp_info.libs = ["ACE+TAO"]
