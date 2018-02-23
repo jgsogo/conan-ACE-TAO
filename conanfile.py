@@ -45,21 +45,21 @@ class AcetaoConan(ConanFile):
         else:
             self.build_macos(working_dir)
 
-    def build_windows(self, working_dir):
-        assert self.settings.os == "Windows"
+    def _exec_mpc(self, working_dir, type):
+        command = ['perl', os.path.join(working_dir, 'bin', 'mwc.pl'), '--type', type,
+                   os.path.join(working_dir, 'TAO', 'TAO_ACE.mwc'), ]
 
-        # Generate project using MPC
-        command = ['perl', os.path.join(working_dir, 'bin', 'mwc.pl'), ]
-        if self.settings.compiler == "Visual Studio":
-            command += ['--type', 'vc{}'.format(self.settings.compiler.version)]
-        else:
-            raise ConanException("Compiler '{}' not implemented.".format(self.settings.compiler))
-        command += [os.path.join(working_dir, 'TAO', 'TAO_ACE.mwc'), ]
         with tools.environment_append({'MPC_ROOT': os.path.join(working_dir, 'MPC'),
                                        'ACE_ROOT': working_dir,
                                        'TAO_ROOT': os.path.join(working_dir, 'TAO')}):
             self.output.info("Generate project: {}".format(' '.join(command)))
             self.run(' '.join(command))
+
+    def build_windows(self, working_dir):
+        assert self.settings.os == "Windows"
+
+        # Generate project using MPC
+        self._exec_mpc(working_dir, type='vc{}'.format(self.settings.compiler.version))
 
         # Compile
         if self.settings.compiler == "Visual Studio":
@@ -69,10 +69,11 @@ class AcetaoConan(ConanFile):
     def build_linux(self, working_dir):
         assert self.settings.os == "Linux"
 
+        self._exec_mpc(working_dir, type='make')
         with open(os.path.join(working_dir, 'include', 'makeinclude', 'platform_macros.GNU'), 'w') as f:
             f.write("include $(ACE_ROOT)/include/makeinclude/platform_linux.GNU\n")
 
-        with tools.environment_append({'ACE_ROOT': working_dir,}):
+        with tools.environment_append({'ACE_ROOT': working_dir, }):
             env_build = AutoToolsBuildEnvironment(self)
             env_build.make()
 
