@@ -14,23 +14,36 @@ class AcetaoConan(ConanFile):
 
     generators = "visual_studio", "gcc"
 
-    def build_requirements(self):
+    source_subfolder = 'source_subfolder'
+
+    def build_requirements(self):  # TODO: Check, if using build_requirements it does not add env variable to path
         if self.settings.os == "Windows":
-            self.requires = 'strawberryperl/5.26.0@conan/stable'
+            self.build_requires('strawberryperl/5.26.0@conan/stable')
 
     def configure(self):
         if self.settings.os not in ["Windows", "Linux", "Macos"]:
             raise ConanException("Recipe for settings.os='{}' not implemented.".format(self.settings.os))
+        if self.settings.os == "Windows" and self.settings.compiler != "Visual Studio":
+            raise ConanException("Recipe for settings.os='{}' and compiler '{}' not implemented.".format(self.settings.os, self.settings.compiler))
 
     def source(self):
-        source_url = "http://download.dre.vanderbilt.edu/previous_versions"  # TODO: May I use https://github.com/DOCGroup/ACE_TAO/releases?
-        tools.get("{0}/{1}-src-{2}.tar.gz".format(source_url, self.name, self.version))
+        version = self.version.replace('.', '_')
+
+        # We need MPC
+        #  TODO: Make it another conan recipe
+        source_url = "https://github.com/DOCGroup/MPC/archive"
+        tools.get("{0}/{1}-{2}.tar.gz".format(source_url, self.name, version))
+        os.rename('MPC-ACE-TAO-{}'.format(version), 'MPC')
+
+        source_url = "https://github.com/DOCGroup/ACE_TAO/archive"
+        tools.get("{0}/{1}-{2}.tar.gz".format(source_url, self.name, version))
+        os.rename('ACE_TAO-ACE-TAO-{}'.format(version), self.source_subfolder)
 
     def build(self):
-        working_dir = os.path.join(self.build_folder, 'ACE_wrappers')
+        working_dir = os.path.join(self.build_folder, self.source_subfolder)
 
         # Create config.h
-        with open(os.path.join(working_dir, 'ace', 'config.h'), 'w') as f:
+        with open(os.path.join(working_dir, 'ACE', 'ace', 'config.h'), 'w') as f:
             if self.settings.os == "Windows":
                 f.write('#include "ace/config-win32.h"\n')
             elif self.settings.os == "Linux":
@@ -46,10 +59,10 @@ class AcetaoConan(ConanFile):
             self.build_macos(working_dir)
 
     def _exec_mpc(self, working_dir, type):
-        command = ['perl', os.path.join(working_dir, 'bin', 'mwc.pl'), '--type', type,
+        command = ['perl', os.path.join(working_dir, 'ACE', 'bin', 'mwc.pl'), '--type', type,
                    os.path.join(working_dir, 'TAO', 'TAO_ACE.mwc'), ]
 
-        with tools.environment_append({'MPC_ROOT': os.path.join(working_dir, 'MPC'),
+        with tools.environment_append({'MPC_ROOT': os.path.join(working_dir, '..', 'MPC'),
                                        'ACE_ROOT': working_dir,
                                        'TAO_ROOT': os.path.join(working_dir, 'TAO')}):
             self.output.info("Generate project: {}".format(' '.join(command)))
@@ -57,23 +70,27 @@ class AcetaoConan(ConanFile):
 
     def build_windows(self, working_dir):
         assert self.settings.os == "Windows"
+        assert self.settings.compiler == "Visual Studio"
 
         # Generate project using MPC
-        self._exec_mpc(working_dir, type='vc{}'.format(self.settings.compiler.version))
+        if self.settings.compiler.version <= 14:
+            self._exec_mpc(working_dir, type='vc{}'.format(self.settings.compiler.version))
+        else:
+            compiler_type = {15: '2017', }[self.settings.compiler.version]
+            self._exec_mpc(working_dir, type='vs{}'.format(compiler_type))
 
         # Compile
-        if self.settings.compiler == "Visual Studio":
-            msbuild = MSBuild(self)
-            try:
-                msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'))
-            except:
-                with open(os.path.join(working_dir, 'TAO', 'UpgradeLog.htm')) as f:
-                    self.output.info("*"*20)
-                    self.output.info("\n\n")
-                    self.output.info(f.read())
-                    self.output.info("\n\n")
-                    self.output.info("*"*20)
-                raise
+        msbuild = MSBuild(self)
+        try:
+            msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'))
+        except:
+            with open(os.path.join(working_dir, 'TAO', 'UpgradeLog.htm')) as f:
+                self.output.info("*"*20)
+                self.output.info("\n\n")
+                self.output.info(f.read())
+                self.output.info("\n\n")
+                self.output.info("*"*20)
+            raise
 
     def build_linux(self, working_dir):
         assert self.settings.os == "Linux"
@@ -99,4 +116,4 @@ class AcetaoConan(ConanFile):
         self.copy("*.a", dst="lib", keep_path=False)
 
     def package_info(self):
-        self.cpp_info.libs = ["ACE+TAO"]
+        self.cpp_info.libs = tools.collect_libs(self)
