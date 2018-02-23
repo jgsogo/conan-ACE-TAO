@@ -47,7 +47,7 @@ class AcetaoConan(ConanFile):
         # Compile
         if self.settings.compiler == "Visual Studio":
             msbuild = MSBuild(self)
-            msbuild.build(os.path.join(working_dir, 'TA0', 'TAO_ACE.sln'))
+            msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'))
 
     def package(self):
         self.copy("*.h", dst="include", src="hello")
