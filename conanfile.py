@@ -63,7 +63,7 @@ class AcetaoConan(ConanFile):
                    os.path.join(working_dir, 'TAO', 'TAO_ACE.mwc'), ]
 
         with tools.environment_append({'MPC_ROOT': os.path.join(working_dir, '..', 'MPC'),
-                                       'ACE_ROOT': working_dir,
+                                       'ACE_ROOT': os.path.join(working_dir, 'ACE'),
                                        'TAO_ROOT': os.path.join(working_dir, 'TAO')}):
             self.output.info("Generate project: {}".format(' '.join(command)))
             self.run(' '.join(command))
@@ -79,7 +79,7 @@ class AcetaoConan(ConanFile):
         else:
             compiler_type = {15: '2017', }[compiler_version]
             self._exec_mpc(working_dir, type='vs{}'.format(compiler_type))
-            
+
         # Compile
         msbuild = MSBuild(self)
         try:
