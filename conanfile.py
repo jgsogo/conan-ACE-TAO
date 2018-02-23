@@ -44,6 +44,7 @@ class AcetaoConan(ConanFile):
 
         # Create config.h
         with open(os.path.join(working_dir, 'ACE', 'ace', 'config.h'), 'w') as f:
+            # TODO: May add opotions like ACE_FACE_SAFETY_BASE
             if self.settings.os == "Windows":
                 f.write('#include "ace/config-win32.h"\n')
             elif self.settings.os == "Linux":
@@ -58,9 +59,9 @@ class AcetaoConan(ConanFile):
         else:
             self.build_macos(working_dir)
 
-    def _exec_mpc(self, working_dir, type):
-        command = ['perl', os.path.join(working_dir, 'ACE', 'bin', 'mwc.pl'), '--type', type,
-                   os.path.join(working_dir, 'TAO', 'TAO_ACE.mwc'), ]
+    def _exec_mpc(self, working_dir, type, mwc=None):
+        mwc = mwc or os.path.join(working_dir, 'TAO', 'TAO_ACE.mwc')
+        command = ['perl', os.path.join(working_dir, 'ACE', 'bin', 'mwc.pl'), '--type', type, mwc, ]
 
         with tools.environment_append({'MPC_ROOT': os.path.join(working_dir, '..', 'MPC'),
                                        'ACE_ROOT': os.path.join(working_dir, 'ACE'),
@@ -82,23 +83,33 @@ class AcetaoConan(ConanFile):
 
         # Compile
         msbuild = MSBuild(self)
-        try:
-            msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'))
-        except:
-            with open(os.path.join(working_dir, 'TAO', 'UpgradeLog.htm')) as f:
-                self.output.info("*"*20)
-                self.output.info("\n\n")
-                self.output.info(f.read())
-                self.output.info("\n\n")
-                self.output.info("*"*20)
-            raise
+        msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'))
 
     def build_linux(self, working_dir):
         assert self.settings.os == "Linux"
 
-        self._exec_mpc(working_dir, type='make')
-        with open(os.path.join(working_dir, 'include', 'makeinclude', 'platform_macros.GNU'), 'w') as f:
-            f.write("include $(ACE_ROOT)/include/makeinclude/platform_linux.GNU\n")
+        conan_mwc = os.path.join(working_dir, 'conan.mwc')
+        with open(conan_mwc) as f:
+            f.write("workspace {\n")
+            f.write("$(TAO_ROOT)/TAO_ACE.mwc\n")  # Condition to TAO
+            # f.write("$(TAO_ROOT)/tests/Hello\n")
+            f.write("$(ACE_ROOT)/ace/ace.mwc\n")  # Condition to ACE
+            # f.write("$(ACE_ROOT)/tests\n")  # Condition to ACETESTS
+            f.write("}\n")
+
+        with open(os.path.join(working_dir, 'ACE', 'include', 'makeinclude', 'platform_macros.GNU'), 'w') as f:
+            f.write("xerces3=1\nssl=1\n")
+            f.write("inline=0\nipv6=1\n")
+            f.write("c++11=1\n")
+            if self.settigns.compiler == "clang":
+                f.write("include $(ACE_ROOT)/include/makeinclude/platform_linux_clang.GNU\n")
+            else:
+                f.write("include $(ACE_ROOT)/include/makeinclude/platform_linux.GNU\n")
+
+        with open(os.path.join(working_dir, 'ACE', 'bin', 'MakeProjectCreator', 'config', 'default.features'), 'w') as f:
+            f.write("xerces3=1\nssl=1\n")
+
+        self._exec_mpc(working_dir, type='gnuace', mwc=conan_mwc)
 
         with tools.environment_append({'ACE_ROOT': working_dir, }):
             env_build = AutoToolsBuildEnvironment(self)
