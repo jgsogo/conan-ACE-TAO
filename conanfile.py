@@ -1,6 +1,6 @@
 
 import os
-from conans import ConanFile, CMake, tools, MSBuild, AutoToolsBuildEnvironment
+from conans import ConanFile, tools, MSBuild, AutoToolsBuildEnvironment
 from conans.errors import ConanException
 
 
@@ -82,8 +82,9 @@ class AcetaoConan(ConanFile):
             self._exec_mpc(working_dir, type='vs{}'.format(compiler_type))
 
         # Compile
-        msbuild = MSBuild(self)
-        msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'), upgrade_project=False)
+        with tools.environment_append({'ACE_ROOT': os.path.join(working_dir, 'ACE'), }):
+            msbuild = MSBuild(self)
+            msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'), upgrade_project=False)
 
     def build_linux(self, working_dir):
         assert self.settings.os == "Linux"
