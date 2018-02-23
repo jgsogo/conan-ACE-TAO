@@ -41,7 +41,7 @@ class AcetaoConan(ConanFile):
         with tools.environment_append({'MPC_ROOT': os.path.join(working_dir, 'MPC'),
                                        'ACE_ROOT': working_dir,
                                        'TAO_ROOT': os.path.join(working_dir, 'TAO')}):
-            self.output("Generate project: {}".format(' '.join(command)))
+            self.output.info("Generate project: {}".format(' '.join(command)))
             self.run(' '.join(command))
 
         # Compile
