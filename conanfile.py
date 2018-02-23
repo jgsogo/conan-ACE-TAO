@@ -111,10 +111,9 @@ class AcetaoConan(ConanFile):
 
         self._exec_mpc(working_dir, type='gnuace', mwc=conan_mwc)
 
-        with tools.environment_append({'ACE_ROOT': working_dir, }):
-            env_build = AutoToolsBuildEnvironment(self)
-            with tools.chdir(os.path.join(working_dir, 'TAO')):
-                env_build.make()
+        #with tools.environment_append({'ACE_ROOT': os.path.join(working_dir, 'ACE'), }):
+        env_build = AutoToolsBuildEnvironment(self)
+        env_build.make()
 
     def build_macos(self, working_dir):
         raise ConanException("AcetaoConan::build_macos not implemented")
