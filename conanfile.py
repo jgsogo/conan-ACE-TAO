@@ -101,7 +101,7 @@ class AcetaoConan(ConanFile):
             f.write("xerces3=1\nssl=1\n")
             f.write("inline=0\nipv6=1\n")
             f.write("c++11=1\n")
-            if self.settigns.compiler == "clang":
+            if self.settings.compiler == "clang":
                 f.write("include $(ACE_ROOT)/include/makeinclude/platform_linux_clang.GNU\n")
             else:
                 f.write("include $(ACE_ROOT)/include/makeinclude/platform_linux.GNU\n")
