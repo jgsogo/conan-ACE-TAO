@@ -89,7 +89,7 @@ class AcetaoConan(ConanFile):
         assert self.settings.os == "Linux"
 
         conan_mwc = os.path.join(working_dir, 'conan.mwc')
-        with open(conan_mwc) as f:
+        with open(conan_mwc, 'w') as f:
             f.write("workspace {\n")
             f.write("$(TAO_ROOT)/TAO_ACE.mwc\n")  # Condition to TAO
             # f.write("$(TAO_ROOT)/tests/Hello\n")
