@@ -8,7 +8,7 @@ class AcetaoConan(ConanFile):
     name = "ACE+TAO"
     version = "6.4.6"
     license = "<Put the package license here>"
-    url = "http://www.dre.vanderbilt.edu/"
+    url = "https://github.com/DOCGroup/ACE_TAO"
     description = "<Description of Acetao here>"
     settings = "os", "compiler", "build_type", "arch"
 
@@ -73,12 +73,13 @@ class AcetaoConan(ConanFile):
         assert self.settings.compiler == "Visual Studio"
 
         # Generate project using MPC
-        if self.settings.compiler.version <= 14:
-            self._exec_mpc(working_dir, type='vc{}'.format(self.settings.compiler.version))
+        compiler_version = int(str(self.settings.compiler.version))
+        if compiler_version <= 14:
+            self._exec_mpc(working_dir, type='vc{}'.format(compiler_version))
         else:
-            compiler_type = {15: '2017', }[self.settings.compiler.version]
+            compiler_type = {15: '2017', }[compiler_version]
             self._exec_mpc(working_dir, type='vs{}'.format(compiler_type))
-
+            
         # Compile
         msbuild = MSBuild(self)
         try:
