@@ -17,10 +17,10 @@ matrix:
       - <<: *linux
         env: CONAN_GCC_VERSIONS=5 CONAN_ARCHS=x86_64 CONAN_BUILD_TYPES=Release CONAN_DOCKER_IMAGE=lasote/conangcc5
       - <<: *linux
-        env: CONAN_CLANG_VERSIONS=3.9 CONAN_ARCHS=x86_64 CONAN_BUILD_TYPES=Release CONAN_DOCKER_IMAGE=lasote/conanclang39
+        env: CONAN_CLANG_VERSIONS=3.9 CONAN_TOTAL_PAGES=2 CONAN_CURRENT_PAGE=1 CONAN_ARCHS=x86_64 CONAN_BUILD_TYPES=Release CONAN_DOCKER_IMAGE=lasote/conanclang39
       - <<: *osx
         osx_image: xcode7.3
-        env: CONAN_APPLE_CLANG_VERSIONS=7.3
+        env: CONAN_APPLE_CLANG_VERSIONS=7.3 CONAN_TOTAL_PAGES=2 CONAN_CURRENT_PAGE=1 CONAN_ARCHS=x86_64 CONAN_BUILD_TYPES=Release
 
 install:
   - chmod +x .travis/install.sh
