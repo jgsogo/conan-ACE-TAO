@@ -41,7 +41,7 @@ class AcetaoConan(ConanFile):
             self.build_requires('strawberryperl/5.26.0@conan/stable')
 
     def configure(self):
-        if self.settings.os not in ["Windows", "Linux", "Macos"]:
+        if self.settings.os not in ["Windows", "Linux", "Darwin"]:
             raise ConanException("Recipe for settings.os='{}' not implemented.".format(self.settings.os))
         if self.settings.os == "Windows" and self.settings.compiler != "Visual Studio":
             raise ConanException("Recipe for settings.os='{}' and compiler '{}' not implemented.".format(self.settings.os, self.settings.compiler))
@@ -106,7 +106,14 @@ class AcetaoConan(ConanFile):
 
     def build_linux(self, working_dir):
         assert self.settings.os == "Linux"
+        platform_gnu = "platform_linux_clang.GNU" if self.settings.compiler == "clang" else "platform_linux.GNU"
+        self._build_unix(working_dir, platform_gnu)
 
+    def build_macos(self, working_dir):
+        assert self.settings.os == "Darwin"
+        self._build_unix(working_dir, platform_gnu="platform_macosx.GNU")
+
+    def _build_unix(self, working_dir, platform_gnu):
         conan_mwc = os.path.join(working_dir, 'conan.mwc')
         with open(conan_mwc, 'w') as f:
             f.write("workspace {\n")
@@ -122,10 +129,7 @@ class AcetaoConan(ConanFile):
             f.write("inline=0\nipv6=1\n")
             f.write("c++11=1\n")
             f.write("ace_for_tao=1\n")
-            if self.settings.compiler == "clang":
-                f.write("include $(ACE_ROOT)/include/makeinclude/platform_linux_clang.GNU\n")
-            else:
-                f.write("include $(ACE_ROOT)/include/makeinclude/platform_linux.GNU\n")
+            f.write("include $(ACE_ROOT)/include/makeinclude/{}\n".format(platform_gnu))
 
         with open(os.path.join(working_dir, 'ACE', 'bin', 'MakeProjectCreator', 'config', 'default.features'), 'w') as f:
             #f.write("xerces3=1\nssl=1\n")
@@ -137,9 +141,6 @@ class AcetaoConan(ConanFile):
                 env_build = AutoToolsBuildEnvironment(self)
                 env_build.make()
                 # Cannot make it to work with the "INSTALL_PREFIX" (see above)  self.run("make install")
-
-    def build_macos(self, working_dir):
-        raise ConanException("AcetaoConan::build_macos not implemented")
 
     def package(self):
         # install_folder = os.path.join(self.build_folder, 'install')
