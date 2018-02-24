@@ -3,6 +3,24 @@ import os
 from conans import ConanFile, tools, MSBuild, AutoToolsBuildEnvironment
 from conans.errors import ConanException
 
+from contextlib import contextmanager
+
+
+@contextmanager
+def append_to_env_variable(var, value, separator, prepend=False):
+    old_value = os.getenv(var, None)
+    try:
+        new_value = [old_value, value] if old_value else [value, ]
+        if prepend:
+            new_value = reversed(new_value)
+        os.environ[var] = separator.join(new_value)
+        yield
+    finally:
+        if old_value is not None:
+             os.environ[var] = old_value
+        else:
+             del os.environ[var]
+
 
 class AcetaoConan(ConanFile):
     name = "ACE+TAO"
@@ -116,9 +134,10 @@ class AcetaoConan(ConanFile):
 
         with tools.environment_append({'ACE_ROOT': os.path.join(working_dir, 'ACE'), 
                                        'TAO_ROOT': os.path.join(working_dir, 'TAO'), }):
-            with tools.chdir(working_dir):
-                env_build = AutoToolsBuildEnvironment(self)
-                env_build.make()
+            with append_to_env_variable('LD_LIBRARY_PATH', os.path.join(working_dir, 'ACE', 'lib'), separator=':', prepend=True): 
+                with tools.chdir(working_dir):
+                    env_build = AutoToolsBuildEnvironment(self)
+                    env_build.make()
 
     def build_macos(self, working_dir):
         raise ConanException("AcetaoConan::build_macos not implemented")
