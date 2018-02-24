@@ -41,7 +41,7 @@ class AcetaoConan(ConanFile):
             self.build_requires('strawberryperl/5.26.0@conan/stable')
 
     def configure(self):
-        if self.settings.os not in ["Windows", "Linux", "Darwin"]:
+        if self.settings.os not in ["Windows", "Linux", "Macos"]:
             raise ConanException("Recipe for settings.os='{}' not implemented.".format(self.settings.os))
         if self.settings.os == "Windows" and self.settings.compiler != "Visual Studio":
             raise ConanException("Recipe for settings.os='{}' and compiler '{}' not implemented.".format(self.settings.os, self.settings.compiler))
@@ -110,7 +110,7 @@ class AcetaoConan(ConanFile):
         self._build_unix(working_dir, platform_gnu)
 
     def build_macos(self, working_dir):
-        assert self.settings.os == "Darwin"
+        assert self.settings.os == "Macos"
         self._build_unix(working_dir, platform_gnu="platform_macosx.GNU")
 
     def _build_unix(self, working_dir, platform_gnu):
