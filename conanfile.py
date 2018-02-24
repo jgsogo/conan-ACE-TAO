@@ -17,9 +17,9 @@ def append_to_env_variable(var, value, separator, prepend=False):
         yield
     finally:
         if old_value is not None:
-             os.environ[var] = old_value
+            os.environ[var] = old_value
         else:
-             del os.environ[var]
+            del os.environ[var]
 
 
 class AcetaoConan(ConanFile):
@@ -81,9 +81,9 @@ class AcetaoConan(ConanFile):
             else:
                 self.build_macos(working_dir)
 
-    def _exec_mpc(self, working_dir, type, mwc=None):
+    def _exec_mpc(self, working_dir, mpc_type, mwc=None):
         mwc = mwc or os.path.join(working_dir, 'TAO', 'TAO_ACE.mwc')
-        command = ['perl', os.path.join(working_dir, 'ACE', 'bin', 'mwc.pl'), '--type', type, mwc, ]
+        command = ['perl', os.path.join(working_dir, 'ACE', 'bin', 'mwc.pl'), '--type', mpc_type, mwc, ]
         self.run(' '.join(command))
 
     def build_windows(self, working_dir):
