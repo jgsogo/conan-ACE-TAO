@@ -117,6 +117,7 @@ class AcetaoConan(ConanFile):
             f.write("}\n")
 
         with open(os.path.join(working_dir, 'ACE', 'include', 'makeinclude', 'platform_macros.GNU'), 'w') as f:
+            f.write("INSTALL_PREFIX = {}\n".format(os.path.join(self.build_folder, 'install')))  # Will ease package creation
             #f.write("xerces3=1\nssl=1\n")
             f.write("inline=0\nipv6=1\n")
             f.write("c++11=1\n")
@@ -138,17 +139,19 @@ class AcetaoConan(ConanFile):
                 with tools.chdir(working_dir):
                     env_build = AutoToolsBuildEnvironment(self)
                     env_build.make()
+                    self.run("make install")
 
     def build_macos(self, working_dir):
         raise ConanException("AcetaoConan::build_macos not implemented")
 
     def package(self):
-        self.copy("*.h", dst="include", src="hello")
-        self.copy("*hello.lib", dst="lib", keep_path=False)
-        self.copy("*.dll", dst="bin", keep_path=False)
-        self.copy("*.so", dst="lib", keep_path=False)
-        self.copy("*.dylib", dst="lib", keep_path=False)
-        self.copy("*.a", dst="lib", keep_path=False)
+        install_folder = os.path.join(self.build_folder, 'install')
+        self.copy("*.h", dst="include", src=install_folder)
+        self.copy("*.dll", dst="bin", src=install_folder, keep_path=False)
+        self.copy("*.so", dst="lib", src=install_folder, keep_path=False)
+        self.copy("*.dylib", dst="lib", src=install_folder, keep_path=False)
+        self.copy("*.a", dst="lib", src=install_folder, keep_path=False)
 
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
+
