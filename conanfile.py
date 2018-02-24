@@ -93,10 +93,10 @@ class AcetaoConan(ConanFile):
         # Generate project using MPC
         compiler_version = int(str(self.settings.compiler.version))
         if compiler_version <= 14:
-            self._exec_mpc(working_dir, type='vc{}'.format(compiler_version))
+            self._exec_mpc(working_dir, mpc_type='vc{}'.format(compiler_version))
         else:
             compiler_type = {15: '2017', }[compiler_version]
-            self._exec_mpc(working_dir, type='vs{}'.format(compiler_type))
+            self._exec_mpc(working_dir, mpc_type='vs{}'.format(compiler_type))
 
         # Compile
         msbuild = MSBuild(self)
@@ -115,7 +115,7 @@ class AcetaoConan(ConanFile):
             f.write("}\n")
 
         with open(os.path.join(working_dir, 'ACE', 'include', 'makeinclude', 'platform_macros.GNU'), 'w') as f:
-            f.write("INSTALL_PREFIX = {}\n".format(os.path.join(self.build_folder, 'install')))  # Will ease package creation
+            # TODO: It is not working :/ f.write("INSTALL_PREFIX = {}\n".format(os.path.join(self.build_folder, 'install')))  # Will ease package creation
             #f.write("xerces3=1\nssl=1\n")
             f.write("inline=0\nipv6=1\n")
             f.write("c++11=1\n")
@@ -129,23 +129,24 @@ class AcetaoConan(ConanFile):
             #f.write("xerces3=1\nssl=1\n")
             f.write("ace_for_tao=1\n")
 
-        self._exec_mpc(working_dir, type='gnuace', mwc=conan_mwc)
+        self._exec_mpc(working_dir, mpc_type='gnuace', mwc=conan_mwc)
         with append_to_env_variable('LD_LIBRARY_PATH', os.path.join(working_dir, 'ACE', 'lib'), separator=':', prepend=True): 
             with tools.chdir(working_dir):
                 env_build = AutoToolsBuildEnvironment(self)
                 env_build.make()
-                self.run("make install")
+                # Cannot make it to work with the "INSTALL_PREFIX" (see above)  self.run("make install")
 
     def build_macos(self, working_dir):
         raise ConanException("AcetaoConan::build_macos not implemented")
 
     def package(self):
-        install_folder = os.path.join(self.build_folder, 'install')
-        self.copy("*.h", dst="include", src=install_folder)
-        self.copy("*.dll", dst="bin", src=install_folder, keep_path=False)
-        self.copy("*.so", dst="lib", src=install_folder, keep_path=False)
-        self.copy("*.dylib", dst="lib", src=install_folder, keep_path=False)
-        self.copy("*.a", dst="lib", src=install_folder, keep_path=False)
+        # install_folder = os.path.join(self.build_folder, 'install')
+        self.copy("*.h", dst="include/tao", src=os.path.join(self.build_folder, self.source_subfolder, 'TAO', 'tao'))
+        self.copy("*.h", dst="include/ace", src=os.path.join(self.build_folder, self.source_subfolder, 'ACE', 'ace'))
+        self.copy("*.dll", dst="bin", src=os.path.join(self.build_folder, self.source_subfolder, 'ACE', 'lib'), keep_path=False)
+        self.copy("*.so", dst="lib", src=os.path.join(self.build_folder, self.source_subfolder, 'ACE', 'lib'), keep_path=False)
+        self.copy("*.dylib", dst="lib", src=os.path.join(self.build_folder, self.source_subfolder, 'ACE', 'lib'), keep_path=False)
+        self.copy("*.a", dst="lib", src=os.path.join(self.build_folder, self.source_subfolder, 'ACE', 'lib'), keep_path=False)
 
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
