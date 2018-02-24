@@ -114,7 +114,8 @@ class AcetaoConan(ConanFile):
 
         self._exec_mpc(working_dir, type='gnuace', mwc=conan_mwc)
 
-        with tools.environment_append({'ACE_ROOT': os.path.join(working_dir, 'ACE'), }):
+        with tools.environment_append({'ACE_ROOT': os.path.join(working_dir, 'ACE'), 
+                                       'TAO_ROOT': os.path.join(working_dir, 'TAO'), }):
             with tools.chdir(working_dir):
                 env_build = AutoToolsBuildEnvironment(self)
                 env_build.make()
