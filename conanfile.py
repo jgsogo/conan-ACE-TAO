@@ -34,6 +34,8 @@ class AcetaoConan(ConanFile):
 
     source_subfolder = 'source_subfolder'
 
+    short_paths = True
+
     def build_requirements(self):
         if self.settings.os == "Windows":
             self.build_requires('strawberryperl/5.26.0@conan/stable')
