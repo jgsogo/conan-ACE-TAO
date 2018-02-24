@@ -99,7 +99,7 @@ class AcetaoConan(ConanFile):
             f.write("}\n")
 
         with open(os.path.join(working_dir, 'ACE', 'include', 'makeinclude', 'platform_macros.GNU'), 'w') as f:
-            f.write("xerces3=1\nssl=1\n")
+            #f.write("xerces3=1\nssl=1\n")
             f.write("inline=0\nipv6=1\n")
             f.write("c++11=1\n")
             f.write("ace_for_tao=1\n")
@@ -109,7 +109,7 @@ class AcetaoConan(ConanFile):
                 f.write("include $(ACE_ROOT)/include/makeinclude/platform_linux.GNU\n")
 
         with open(os.path.join(working_dir, 'ACE', 'bin', 'MakeProjectCreator', 'config', 'default.features'), 'w') as f:
-            f.write("xerces3=1\nssl=1\n")
+            #f.write("xerces3=1\nssl=1\n")
             f.write("ace_for_tao=1\n")
 
         self._exec_mpc(working_dir, type='gnuace', mwc=conan_mwc)
