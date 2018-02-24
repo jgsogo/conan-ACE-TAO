@@ -143,6 +143,9 @@ class AcetaoConan(ConanFile):
         # install_folder = os.path.join(self.build_folder, 'install')
         self.copy("*.h", dst="include/tao", src=os.path.join(self.build_folder, self.source_subfolder, 'TAO', 'tao'))
         self.copy("*.h", dst="include/ace", src=os.path.join(self.build_folder, self.source_subfolder, 'ACE', 'ace'))
+        if True:  # TODO: Make it depend on __ACE_INLINE__
+            self.copy("*.inl", dst="include/tao", src=os.path.join(self.build_folder, self.source_subfolder, 'TAO', 'tao'))
+            self.copy("*.inl", dst="include/ace", src=os.path.join(self.build_folder, self.source_subfolder, 'ACE', 'ace'))
         self.copy("*.dll", dst="bin", src=os.path.join(self.build_folder, self.source_subfolder, 'ACE', 'lib'), keep_path=False)
         self.copy("*.so", dst="lib", src=os.path.join(self.build_folder, self.source_subfolder, 'ACE', 'lib'), keep_path=False)
         self.copy("*.dylib", dst="lib", src=os.path.join(self.build_folder, self.source_subfolder, 'ACE', 'lib'), keep_path=False)
