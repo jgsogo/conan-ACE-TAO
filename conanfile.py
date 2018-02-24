@@ -94,7 +94,7 @@ class AcetaoConan(ConanFile):
             f.write("workspace {\n")
             f.write("$(TAO_ROOT)/TAO_ACE.mwc\n")  # Condition to TAO
             # f.write("$(TAO_ROOT)/tests/Hello\n")
-            f.write("$(ACE_ROOT)/ace/ace.mwc\n")  # Condition to ACE
+            # f.write("$(ACE_ROOT)/ace/ace.mwc\n")  # Condition to ACE
             # f.write("$(ACE_ROOT)/tests\n")  # Condition to ACETESTS
             f.write("}\n")
 
@@ -102,6 +102,7 @@ class AcetaoConan(ConanFile):
             f.write("xerces3=1\nssl=1\n")
             f.write("inline=0\nipv6=1\n")
             f.write("c++11=1\n")
+            f.write("ace_for_tao=1\n")
             if self.settings.compiler == "clang":
                 f.write("include $(ACE_ROOT)/include/makeinclude/platform_linux_clang.GNU\n")
             else:
@@ -109,6 +110,7 @@ class AcetaoConan(ConanFile):
 
         with open(os.path.join(working_dir, 'ACE', 'bin', 'MakeProjectCreator', 'config', 'default.features'), 'w') as f:
             f.write("xerces3=1\nssl=1\n")
+            f.write("ace_for_tao=1\n")
 
         self._exec_mpc(working_dir, type='gnuace', mwc=conan_mwc)
 
