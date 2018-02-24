@@ -70,22 +70,21 @@ class AcetaoConan(ConanFile):
             else:  # Macos
                 f.write('#include "ace/config-macosx.h"\n')
 
-        if self.settings.os == "Windows":
-            self.build_windows(working_dir)
-        elif self.settings.os == "Linux":
-            self.build_linux(working_dir)
-        else:
-            self.build_macos(working_dir)
+        # Set env variables and run build
+        with tools.environment_append({'MPC_ROOT': os.path.join(working_dir, '..', 'MPC'),
+                                       'ACE_ROOT': os.path.join(working_dir, 'ACE'),
+                                       'TAO_ROOT': os.path.join(working_dir, 'TAO')}):
+            if self.settings.os == "Windows":
+                self.build_windows(working_dir)
+            elif self.settings.os == "Linux":
+                self.build_linux(working_dir)
+            else:
+                self.build_macos(working_dir)
 
     def _exec_mpc(self, working_dir, type, mwc=None):
         mwc = mwc or os.path.join(working_dir, 'TAO', 'TAO_ACE.mwc')
         command = ['perl', os.path.join(working_dir, 'ACE', 'bin', 'mwc.pl'), '--type', type, mwc, ]
-
-        with tools.environment_append({'MPC_ROOT': os.path.join(working_dir, '..', 'MPC'),
-                                       'ACE_ROOT': os.path.join(working_dir, 'ACE'),
-                                       'TAO_ROOT': os.path.join(working_dir, 'TAO')}):
-            self.output.info("Generate project: {}".format(' '.join(command)))
-            self.run(' '.join(command))
+        self.run(' '.join(command))
 
     def build_windows(self, working_dir):
         assert self.settings.os == "Windows"
@@ -100,9 +99,8 @@ class AcetaoConan(ConanFile):
             self._exec_mpc(working_dir, type='vs{}'.format(compiler_type))
 
         # Compile
-        with tools.environment_append({'ACE_ROOT': os.path.join(working_dir, 'ACE'), }):
-            msbuild = MSBuild(self)
-            msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'), upgrade_project=False)
+        msbuild = MSBuild(self)
+        msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'), upgrade_project=False)
 
     def build_linux(self, working_dir):
         assert self.settings.os == "Linux"
@@ -132,14 +130,11 @@ class AcetaoConan(ConanFile):
             f.write("ace_for_tao=1\n")
 
         self._exec_mpc(working_dir, type='gnuace', mwc=conan_mwc)
-
-        with tools.environment_append({'ACE_ROOT': os.path.join(working_dir, 'ACE'), 
-                                       'TAO_ROOT': os.path.join(working_dir, 'TAO'), }):
-            with append_to_env_variable('LD_LIBRARY_PATH', os.path.join(working_dir, 'ACE', 'lib'), separator=':', prepend=True): 
-                with tools.chdir(working_dir):
-                    env_build = AutoToolsBuildEnvironment(self)
-                    env_build.make()
-                    self.run("make install")
+        with append_to_env_variable('LD_LIBRARY_PATH', os.path.join(working_dir, 'ACE', 'lib'), separator=':', prepend=True): 
+            with tools.chdir(working_dir):
+                env_build = AutoToolsBuildEnvironment(self)
+                env_build.make()
+                self.run("make install")
 
     def build_macos(self, working_dir):
         raise ConanException("AcetaoConan::build_macos not implemented")
