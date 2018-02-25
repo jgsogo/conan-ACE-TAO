@@ -151,7 +151,7 @@ class AcetaoConan(ConanFile):
             self.copy("*.inl", dst="include/ace", src=os.path.join(self.build_folder, self.source_subfolder, 'ACE', 'ace'))
         self.copy("*.dll", dst="bin", src=os.path.join(self.build_folder, self.source_subfolder, 'ACE', 'lib'), keep_path=False)
         self.copy("*.so", dst="lib", src=os.path.join(self.build_folder, self.source_subfolder, 'ACE', 'lib'), keep_path=False)
-        self.copy("*.dylib", dst="lib", src=os.path.join(self.build_folder, self.source_subfolder, 'ACE', 'lib'), keep_path=False)
+        self.copy("*.dylib", dst="bin", src=os.path.join(self.build_folder, self.source_subfolder, 'ACE', 'lib'), keep_path=False)
         self.copy("*.a", dst="lib", src=os.path.join(self.build_folder, self.source_subfolder, 'ACE', 'lib'), keep_path=False)
 
     def package_info(self):
