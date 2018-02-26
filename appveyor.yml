@@ -6,6 +6,20 @@ environment:
     PYTHON_ARCH: "32"
 
     matrix:
+        # Build for Visual Studio 2017
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+          CONAN_VISUAL_VERSIONS: 15
+          CONAN_BUILD_TYPES: Release
+          CONAN_ARCHS: x86_64
+          CONAN_TOTAL_PAGES: 2
+          CONAN_CURRENT_PAGE: 1
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+          CONAN_VISUAL_VERSIONS: 15
+          CONAN_BUILD_TYPES: Release
+          CONAN_ARCHS: x86_64
+          CONAN_TOTAL_PAGES: 2
+          CONAN_CURRENT_PAGE: 2
+        # Build for Visual Studio 2015
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
           CONAN_VISUAL_VERSIONS: 12
           CONAN_BUILD_TYPES: Release
@@ -18,18 +32,45 @@ environment:
           CONAN_TOTAL_PAGES: 2
           CONAN_CURRENT_PAGE: 2
           CONAN_ARCHS: x86_64
+        # Build for Visual Studio 2012
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
           CONAN_VISUAL_VERSIONS: 11
           CONAN_BUILD_TYPES: Release
           CONAN_TOTAL_PAGES: 2
           CONAN_CURRENT_PAGE: 1
           CONAN_ARCHS: x86_64
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
+          CONAN_VISUAL_VERSIONS: 11
+          CONAN_BUILD_TYPES: Release
+          CONAN_TOTAL_PAGES: 2
+          CONAN_CURRENT_PAGE: 2
+          CONAN_ARCHS: x86_64
+        # A debug build
         - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
           CONAN_VISUAL_VERSIONS: 15
-          CONAN_BUILD_TYPES: Release
+          CONAN_BUILD_TYPES: Debug
           CONAN_ARCHS: x86_64
           CONAN_TOTAL_PAGES: 2
           CONAN_CURRENT_PAGE: 1
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+          CONAN_VISUAL_VERSIONS: 15
+          CONAN_BUILD_TYPES: Debug
+          CONAN_ARCHS: x86_64
+          CONAN_TOTAL_PAGES: 2
+          CONAN_CURRENT_PAGE: 2
+        # A x86 build
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+          CONAN_VISUAL_VERSIONS: 15
+          CONAN_BUILD_TYPES: Debug
+          CONAN_ARCHS: x86
+          CONAN_TOTAL_PAGES: 2
+          CONAN_CURRENT_PAGE: 1
+        - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+          CONAN_VISUAL_VERSIONS: 15
+          CONAN_BUILD_TYPES: Debug
+          CONAN_ARCHS: x86
+          CONAN_TOTAL_PAGES: 2
+          CONAN_CURRENT_PAGE: 2
 
 install:
   - set PATH=%PATH%;%PYTHON%/Scripts/
