@@ -101,8 +101,9 @@ class AcetaoConan(ConanFile):
             self._exec_mpc(working_dir, mpc_type='vs{}'.format(compiler_type))
 
         # Compile
-        msbuild = MSBuild(self)
-        msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'), upgrade_project=False)
+        with append_to_env_variable("PATH", os.path.join(working_dir, 'ACE', 'lib'), ';', prepend=True):
+            msbuild = MSBuild(self)
+            msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'), upgrade_project=False)
 
     def build_linux(self, working_dir):
         assert self.settings.os == "Linux"
