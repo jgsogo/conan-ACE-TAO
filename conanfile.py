@@ -103,6 +103,9 @@ class AcetaoConan(ConanFile):
         # Compile
         with append_to_env_variable("PATH", os.path.join(working_dir, 'ACE', 'lib'), ';', prepend=True):
             msbuild = MSBuild(self)
+            # TODO: [bug in Conan.io?] Under investigation
+            tools.replace_in_file(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'), "Debug|Win32", "Debug|x86")
+            tools.replace_in_file(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'), "Release|Win32", "Release|x86")
             msbuild.build(os.path.join(working_dir, 'TAO', 'TAO_ACE.sln'), upgrade_project=False)
 
     def build_linux(self, working_dir):
